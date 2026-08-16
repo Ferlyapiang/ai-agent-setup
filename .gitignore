@@ -1,0 +1,46 @@
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Local document inputs for AI agents
+docs-input/*
+!docs-input/.gitkeep
+
+# Local AI agent state
+.codewhale/state/
+
+# Dependencies and package manager caches
+node_modules/
+.npm/
+.pnpm-store/
+
+# Python caches and virtual environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# Build output and local caches
+dist/
+build/
+coverage/
+.cache/
+.turbo/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

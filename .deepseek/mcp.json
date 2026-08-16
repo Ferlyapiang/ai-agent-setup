@@ -1,0 +1,27 @@
+{
+  "_comment": "Template MCP config for DeepSeek-TUI or compatible terminal coding agents. JSON does not support comments, so examples are stored in _examples.",
+  "mcpServers": {},
+  "_examples": {
+    "filesystem": {
+      "description": "Example only. Allows an MCP-compatible agent to inspect a local directory.",
+      "config": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-filesystem",
+          "."
+        ]
+      }
+    },
+    "documentParsing": {
+      "description": "Example only. Prefer the local document-reading skill in this repo first. If you later adopt a document parsing MCP server, add its command and args here.",
+      "config": {
+        "command": "example-document-mcp",
+        "args": [
+          "--input-dir",
+          "docs-input"
+        ]
+      }
+    }
+  }
+}
