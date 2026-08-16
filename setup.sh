@@ -70,14 +70,20 @@ fi
 if [ ! -f .env ]; then
   cp .env.example .env
   info ".env was created from .env.example."
-  info "Please fill DEEPSEEK_API_KEY in .env, then rerun this script."
+  info "Please fill at least one provider API key in .env, then rerun this script."
+  info "Recommended options:"
+  info "  DEEPSEEK_API_KEY=..."
+  info "  OPENROUTER_API_KEY=..."
   exit 1
 fi
 
 DEEPSEEK_API_KEY_VALUE="$(get_env_value "DEEPSEEK_API_KEY" ".env")"
-if [ -z "$DEEPSEEK_API_KEY_VALUE" ]; then
-  info ".env exists, but DEEPSEEK_API_KEY is empty."
-  info "Please fill DEEPSEEK_API_KEY in .env, then rerun this script."
+OPENROUTER_API_KEY_VALUE="$(get_env_value "OPENROUTER_API_KEY" ".env")"
+if [ -z "$DEEPSEEK_API_KEY_VALUE" ] && [ -z "$OPENROUTER_API_KEY_VALUE" ]; then
+  info ".env exists, but no provider API key is filled."
+  info "Please fill at least one of these in .env, then rerun this script:"
+  info "  DEEPSEEK_API_KEY=..."
+  info "  OPENROUTER_API_KEY=..."
   exit 1
 fi
 

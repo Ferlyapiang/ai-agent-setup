@@ -1,6 +1,9 @@
 param(
     [string]$Path = ".",
     [string]$Task = "",
+    [ValidateSet("deepseek", "openrouter", "ollama")]
+    [string]$Provider = "deepseek",
+    [string]$Model = "",
     [switch]$NoBootstrap,
     [switch]$Interactive,
     [switch]$InstallLocalSkills
@@ -132,7 +135,27 @@ $deepseekApiKey = Get-EnvFileValue -FilePath $setupEnvPath -Key "DEEPSEEK_API_KE
 if ($deepseekApiKey) {
     $env:DEEPSEEK_API_KEY = $deepseekApiKey
 }
-$env:CODEWHALE_PROVIDER = "deepseek"
+$openRouterApiKey = Get-EnvFileValue -FilePath $setupEnvPath -Key "OPENROUTER_API_KEY"
+if ($openRouterApiKey) {
+    $env:OPENROUTER_API_KEY = $openRouterApiKey
+}
+
+if ($Provider -eq "deepseek" -and (-not $env:DEEPSEEK_API_KEY)) {
+    Write-Info "DEEPSEEK_API_KEY is empty. Fill it in .env or choose another provider."
+    exit 1
+}
+
+if ($Provider -eq "openrouter" -and (-not $env:OPENROUTER_API_KEY)) {
+    Write-Info "OPENROUTER_API_KEY is empty. Fill it in .env or choose another provider."
+    Write-Info "For temporary testing, you can use OpenRouter free models after creating an API key."
+    exit 1
+}
+
+$env:CODEWHALE_PROVIDER = $Provider
+
+if ((-not $Model) -and $Provider -eq "openrouter") {
+    $Model = "openrouter/free"
+}
 
 if (-not $NoBootstrap) {
     Write-Info "Preparing AI agent files in: $TargetRoot"
@@ -210,6 +233,10 @@ if (-not $Task) {
 }
 
 Write-Info "Running CodeWhale in: $TargetRoot"
+Write-Info "Provider: $Provider"
+if ($Model) {
+    Write-Info "Model: $Model"
+}
 if ($env:CODEWHALE_SKILLS_DIR) {
     Write-Info "Using skills dir: $env:CODEWHALE_SKILLS_DIR"
 }
@@ -220,7 +247,15 @@ if ($Interactive) {
     Write-Info ""
     Write-Info $Task
     Write-Info ""
-    codewhale --provider deepseek
+    if ($Model) {
+        codewhale --provider $Provider --model $Model
+    } else {
+        codewhale --provider $Provider
+    }
 } else {
-    codewhale --provider deepseek -p $Task
+    if ($Model) {
+        codewhale --provider $Provider --model $Model -p $Task
+    } else {
+        codewhale --provider $Provider -p $Task
+    }
 }

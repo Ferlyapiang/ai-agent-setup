@@ -99,14 +99,20 @@ if (-not (Test-Path -LiteralPath "docs-input/.gitkeep")) {
 if (-not (Test-Path -LiteralPath ".env")) {
     Copy-Item -LiteralPath ".env.example" -Destination ".env"
     Write-Info ".env was created from .env.example."
-    Write-Info "Please fill DEEPSEEK_API_KEY in .env, then rerun this script."
+    Write-Info "Please fill at least one provider API key in .env, then rerun this script."
+    Write-Info "Recommended options:"
+    Write-Info "  DEEPSEEK_API_KEY=..."
+    Write-Info "  OPENROUTER_API_KEY=..."
     exit 1
 }
 
 $deepseekApiKey = Get-EnvFileValue -Path ".env" -Key "DEEPSEEK_API_KEY"
-if (-not $deepseekApiKey) {
-    Write-Info ".env exists, but DEEPSEEK_API_KEY is empty."
-    Write-Info "Please fill DEEPSEEK_API_KEY in .env, then rerun this script."
+$openRouterApiKey = Get-EnvFileValue -Path ".env" -Key "OPENROUTER_API_KEY"
+if ((-not $deepseekApiKey) -and (-not $openRouterApiKey)) {
+    Write-Info ".env exists, but no provider API key is filled."
+    Write-Info "Please fill at least one of these in .env, then rerun this script:"
+    Write-Info "  DEEPSEEK_API_KEY=..."
+    Write-Info "  OPENROUTER_API_KEY=..."
     exit 1
 }
 

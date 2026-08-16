@@ -29,6 +29,7 @@ Kalau script membuat file `.env`, buka file itu lalu isi API key:
 
 ```text
 DEEPSEEK_API_KEY=isi_api_key_kamu_di_sini
+OPENROUTER_API_KEY=isi_api_key_openrouter_kamu_di_sini
 ```
 
 Setelah `.env` diisi, jalankan setup lagi:
@@ -84,6 +85,11 @@ git pull
 
 File `.env` memang tidak ikut git, jadi di setiap device kamu perlu mengisi API key lokal masing-masing.
 
+Kamu tidak wajib mengisi semua API key. Isi minimal salah satu:
+
+- `DEEPSEEK_API_KEY` untuk DeepSeek.
+- `OPENROUTER_API_KEY` untuk OpenRouter.
+
 ## 3. Cara Menjalankan Agent
 
 Jalankan agent dari folder repo yang ingin dibaca atau diedit.
@@ -121,6 +127,18 @@ cd C:\path\to\ai-agent-setup
 .\agent.ps1 -Path "C:\path\to\target-repo"
 ```
 
+Command di atas default memakai DeepSeek. Kalau ingin eksplisit:
+
+```powershell
+.\agent.ps1 -Path "C:\path\to\target-repo" -Provider deepseek -Interactive
+```
+
+Untuk uji coba gratis/sementara dengan OpenRouter free:
+
+```powershell
+.\agent.ps1 -Path "C:\path\to\target-repo" -Provider openrouter -Model openrouter/free -Interactive
+```
+
 Yang dilakukan launcher:
 
 - Masuk ke folder target.
@@ -128,13 +146,13 @@ Yang dilakukan launcher:
 - Tidak menyalin banyak file `SKILL.md` ke repo target secara default.
 - Membuat `docs-input/` jika belum ada.
 - Menambahkan ignore aman untuk `.env`, `docs-input/`, `.codewhale/state/`, dan `.deepseek/` di repo target.
-- Menggunakan API key dari `.env` di repo setup ini untuk proses CodeWhale.
+- Menggunakan API key provider dari `.env` di repo setup ini untuk proses CodeWhale.
 - Menjalankan CodeWhale dengan prompt scan repo dalam Bahasa Indonesia.
 
 Secara default launcher menjalankan CodeWhale dengan one-shot prompt:
 
 ```powershell
-codewhale --provider deepseek -p "<prompt scan repo>"
+codewhale --provider <provider> --model <model> -p "<prompt scan repo>"
 ```
 
 Kalau kamu ingin masuk mode chat interaktif, pakai:
@@ -151,10 +169,16 @@ Kalau mau memberi tugas custom:
 .\agent.ps1 -Path "C:\path\to\target-repo" -Task "Jawab dalam Bahasa Indonesia. Baca repo ini dan cari bug pada fitur login. Jangan edit dulu, laporkan temuanmu."
 ```
 
+Kamu juga bisa gabungkan task custom dengan provider:
+
+```powershell
+.\agent.ps1 -Path "C:\path\to\target-repo" -Provider openrouter -Model openrouter/free -Task "Jawab dalam Bahasa Indonesia. Scan repo ini dan buat laporan awal. Jangan edit file dulu."
+```
+
 Untuk Git Bash/Linux/macOS:
 
 ```bash
-./agent.sh --path "/path/ke/repo-target"
+./agent.sh --path "/path/ke/repo-target" --provider openrouter --model openrouter/free --interactive
 ```
 
 Kalau kamu benar-benar ingin menyalin skill ke repo target, gunakan flag eksplisit:
@@ -165,18 +189,78 @@ Kalau kamu benar-benar ingin menyalin skill ke repo target, gunakan flag eksplis
 
 Biasanya tidak perlu memakai flag ini. Default launcher lebih bersih untuk repo public karena skill tetap tinggal di repo setup ini.
 
-## 5. Saat Masuk CodeWhale
+## 5. Pilihan Provider
+
+### DeepSeek
+
+DeepSeek cocok untuk pekerjaan coding yang lebih serius, tetapi API bisa butuh saldo/quota.
+
+Isi `.env`:
+
+```text
+DEEPSEEK_API_KEY=...
+```
+
+Jalankan:
+
+```powershell
+.\agent.ps1 -Path "C:\path\to\target-repo" -Provider deepseek -Interactive
+```
+
+### OpenRouter Free
+
+OpenRouter cocok untuk uji coba sementara tanpa top up DeepSeek. Buat API key di OpenRouter, lalu isi `.env`:
+
+```text
+OPENROUTER_API_KEY=...
+```
+
+Jalankan:
+
+```powershell
+.\agent.ps1 -Path "C:\path\to\target-repo" -Provider openrouter -Model openrouter/free -Interactive
+```
+
+Catatan: model gratis biasanya punya batas request dan kualitasnya bisa berubah. Untuk menghindari biaya tidak sengaja, gunakan `openrouter/free` atau model OpenRouter yang memiliki suffix `:free`.
+
+### Menjalankan Dua Agent
+
+Kalau kamu ingin menjalankan dua terminal agent:
+
+Terminal 1, DeepSeek:
+
+```powershell
+cd C:\path\to\ai-agent-setup
+.\agent.ps1 -Path "C:\path\to\target-repo" -Provider deepseek -Interactive
+```
+
+Terminal 2, OpenRouter:
+
+```powershell
+cd C:\path\to\ai-agent-setup
+.\agent.ps1 -Path "C:\path\to\target-repo" -Provider openrouter -Model openrouter/free -Interactive
+```
+
+Saran: jangan minta dua agent mengedit file yang sama secara bersamaan. Pakai satu untuk membaca/review, satu lagi untuk implementasi, atau jalankan bergantian.
+
+## 6. Saat Masuk CodeWhale
 
 Kalau CodeWhale menanyakan provider atau model:
 
-- Pilih provider: `deepseek`.
-- Pilih model: gunakan pilihan default atau recommended dari CodeWhale.
-- Kalau ada pilihan auth/API key: pakai `DEEPSEEK_API_KEY` dari file `.env`.
+- Untuk DeepSeek, pilih provider `deepseek`.
+- Untuk OpenRouter, pilih provider `openrouter` dan model `openrouter/free`.
+- Kalau ada pilihan auth/API key: pakai key dari file `.env`.
 
 Kalau sudah masuk tampilan chat, kamu bisa ketik:
 
 ```text
 /provider deepseek
+```
+
+Atau untuk OpenRouter:
+
+```text
+/provider openrouter
 ```
 
 Lalu pakai prompt pembuka ini:
@@ -208,7 +292,7 @@ Scan struktur folder, deteksi bahasa/framework, jelaskan cara menjalankan projec
 dan sebutkan konvensi penting yang harus kamu ikuti sebelum mengedit code.
 ```
 
-## 6. Skill Agent
+## 7. Skill Agent
 
 Instruksi project ada di:
 
@@ -224,7 +308,7 @@ Instruksi membaca dokumen ada di:
 
 Kalau project ini berkembang, update `project-conventions/SKILL.md` supaya agent makin paham aturan project: struktur folder, style code, cara test, format commit, dan hal lain yang wajib diikuti.
 
-## 7. Membaca PDF, Excel, dan CSV
+## 8. Membaca PDF, Excel, dan CSV
 
 Taruh dokumen lokal di:
 
@@ -270,7 +354,7 @@ Extract text dan tabel per halaman, lalu rangkum poin pentingnya.
 Kalau PDF ini hasil scan dan butuh OCR, beri tahu saya.
 ```
 
-## 8. Menggunakan Setup Ini di Repo Lain
+## 9. Menggunakan Setup Ini di Repo Lain
 
 Kalau kamu ingin repo lain punya setup agent yang benar-benar berdiri sendiri, copy file/folder berikut ke repo tersebut:
 
@@ -301,7 +385,7 @@ Setelah itu jalankan setup dari root repo tersebut:
 
 Untuk penggunaan harian, lebih disarankan pakai `agent.ps1 -Path "C:\path\to\target-repo"` dari repo setup ini supaya repo target tidak dipenuhi file skill tambahan.
 
-## 9. Catatan Keamanan
+## 10. Catatan Keamanan
 
 Jangan commit `.env`.
 
@@ -309,7 +393,7 @@ Jangan commit API key, token, password, credential, cookie, atau file rahasia la
 
 File di `docs-input/` tidak ikut ke-commit, kecuali `docs-input/.gitkeep`. Folder ini cocok untuk dokumen lokal seperti PDF, Excel, dan CSV yang mungkin sensitif.
 
-## 10. Troubleshooting
+## 11. Troubleshooting
 
 Jika `codewhale` tidak dikenali setelah install, tutup terminal lalu buka terminal baru.
 
@@ -344,8 +428,14 @@ codewhale auth status
 codewhale doctor
 ```
 
-Lalu pastikan akun DeepSeek punya saldo/quota dan API key benar. Jika perlu set ulang key:
+Lalu pastikan akun provider punya saldo/quota dan API key benar. Jika perlu set ulang DeepSeek key:
 
 ```powershell
 codewhale auth set --provider deepseek
+```
+
+Untuk OpenRouter:
+
+```powershell
+codewhale auth set --provider openrouter
 ```

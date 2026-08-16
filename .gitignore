@@ -10,6 +10,14 @@ docs-input/*
 # Local AI agent state
 .codewhale/state/
 
+# Keep this setup repo focused on project-owned skills only.
+.deepseek/skills/*
+!.deepseek/skills/document-reading/
+!.deepseek/skills/document-reading/SKILL.md
+!.deepseek/skills/project-conventions/
+!.deepseek/skills/project-conventions/SKILL.md
+.deepseek/skills/.system-installed-version
+
 # Dependencies and package manager caches
 node_modules/
 .npm/

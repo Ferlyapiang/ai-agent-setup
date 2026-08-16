@@ -4,6 +4,8 @@ set -euo pipefail
 SETUP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_PATH="."
 TASK=""
+PROVIDER="deepseek"
+MODEL=""
 NO_BOOTSTRAP=0
 INTERACTIVE=0
 INSTALL_LOCAL_SKILLS=0
@@ -16,6 +18,14 @@ while [ "$#" -gt 0 ]; do
       ;;
     --task|-Task|-t)
       TASK="$2"
+      shift 2
+      ;;
+    --provider|-Provider)
+      PROVIDER="$2"
+      shift 2
+      ;;
+    --model|-Model)
+      MODEL="$2"
       shift 2
       ;;
     --no-bootstrap)
@@ -103,8 +113,28 @@ if [ -f "$SETUP_ROOT/.env" ]; then
   if [ -n "$DEEPSEEK_API_KEY_VALUE" ]; then
     export DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY_VALUE"
   fi
+  OPENROUTER_API_KEY_VALUE="$(get_env_value "OPENROUTER_API_KEY" "$SETUP_ROOT/.env")"
+  if [ -n "$OPENROUTER_API_KEY_VALUE" ]; then
+    export OPENROUTER_API_KEY="$OPENROUTER_API_KEY_VALUE"
+  fi
 fi
-export CODEWHALE_PROVIDER="deepseek"
+
+if [ "$PROVIDER" = "deepseek" ] && [ -z "${DEEPSEEK_API_KEY:-}" ]; then
+  info "DEEPSEEK_API_KEY is empty. Fill it in .env or choose another provider."
+  exit 1
+fi
+
+if [ "$PROVIDER" = "openrouter" ] && [ -z "${OPENROUTER_API_KEY:-}" ]; then
+  info "OPENROUTER_API_KEY is empty. Fill it in .env or choose another provider."
+  info "For temporary testing, you can use OpenRouter free models after creating an API key."
+  exit 1
+fi
+
+export CODEWHALE_PROVIDER="$PROVIDER"
+
+if [ -z "$MODEL" ] && [ "$PROVIDER" = "openrouter" ]; then
+  MODEL="openrouter/free"
+fi
 
 TARGET_ROOT="$(cd "$TARGET_PATH" && pwd)"
 
@@ -169,6 +199,10 @@ if [ -z "$TASK" ]; then
 fi
 
 info "Running CodeWhale in: $TARGET_ROOT"
+info "Provider: $PROVIDER"
+if [ -n "$MODEL" ]; then
+  info "Model: $MODEL"
+fi
 if [ -n "${CODEWHALE_SKILLS_DIR:-}" ]; then
   info "Using skills dir: $CODEWHALE_SKILLS_DIR"
 fi
@@ -179,7 +213,15 @@ if [ "$INTERACTIVE" -eq 1 ]; then
   info ""
   info "$TASK"
   info ""
-  codewhale --provider deepseek
+  if [ -n "$MODEL" ]; then
+    codewhale --provider "$PROVIDER" --model "$MODEL"
+  else
+    codewhale --provider "$PROVIDER"
+  fi
 else
-  codewhale --provider deepseek -p "$TASK"
+  if [ -n "$MODEL" ]; then
+    codewhale --provider "$PROVIDER" --model "$MODEL" -p "$TASK"
+  else
+    codewhale --provider "$PROVIDER" -p "$TASK"
+  fi
 fi
